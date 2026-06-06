@@ -1,0 +1,6 @@
+{
+  "name": "Online Exam & Result Portal",
+  "description": "A comprehensive full-stack examination system and result portal with rich analytics, multi-role views (Student and Teacher), real-time exam tracking, and a downloadable local configuration generator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
