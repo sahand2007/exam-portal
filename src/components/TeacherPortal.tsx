@@ -25,16 +25,7 @@ export default function TeacherPortal({
   const [newDescription, setNewDescription] = useState("");
   const [newSubject, setNewSubject] = useState("Computer Science");
   const [newDuration, setNewDuration] = useState(15);
-  const sortedSubmissions = [...submissions].sort((a, b) => b.percentage - a.percentage);
-
-// لەناو TeacherPortal، لە بەشی Dashboardدا ئەمە زیاد بکە:
-<div className="bg-white p-6 rounded-xl border border-slate-200">
-  <h3 className="font-bold text-sm mb-4">Latest Top Scores</h3>
-  {sortedSubmissions.slice(0, 5).map(sub => (
-    <div key={sub.id} className="flex justify-between py-2 border-b">
-      <span>{sub.studentName}</span>
-      <span className="font-bold">{sub.percentage}%</span>
-    </div>
+  
   // Custom interactive questions collection
   const [newQuestions, setNewQuestions] = useState<Omit<Question, "id">[]>([
     {
