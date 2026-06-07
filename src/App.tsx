@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 export default function App() {
-  // Global App States - ڕاستەوخۆ بەکارهێنەرێک دادەنێین بۆ تاقیکردنەوە
+  // Global App States - بەکارهێنەری سەرەکی (دەتوانیت لە ڕێگەی سویچ گۆڕانکاری بکەیت)
   const [currentUser, setCurrentUser] = useState<User | null>({
     id: "u-1",
     email: "student@example.com",
@@ -29,38 +29,116 @@ export default function App() {
     role: Role.STUDENT,
   });
 
-  // لێرەدا داتاکان ڕاستەوخۆ دەخەینە ناو State بۆ ئەوەی بێ کێشە نیشانی بدات
+  // لێرەدا داتاکان بە دەوڵەمەندی دادەنێین بۆ ئەوەی کێشەی کەمی داتا نەمێنێت
   const [exams, setExams] = useState<Exam[]>([
     {
       id: "exam-1",
       title: "Midterm Examination 2026",
-      description: "Core concepts evaluation.",
-      questions: [],
+      description: "Evaluation of core concepts including algorithms, system structure, and basic protocols.",
       duration: 60,
-      totalPoints: 100
+      totalPoints: 100,
+      questions: [
+        {
+          id: "q1",
+          text: "What is the primary complexity of Binary Search in the worst case?",
+          options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
+          correctOptionIndex: 2,
+          points: 50
+        },
+        {
+          id: "q2",
+          text: "Which protocol operates at the Transport Layer of the OSI model?",
+          options: ["HTTP", "TCP", "IP", "FTP"],
+          correctOptionIndex: 1,
+          points: 50
+        }
+      ]
+    },
+    {
+      id: "exam-2",
+      title: "Web Development Advanced Quiz",
+      description: "Deep dive into React lifecycle, state management, and custom hook optimization.",
+      duration: 45,
+      totalPoints: 100,
+      questions: [
+        {
+          id: "q3",
+          text: "Which hook is used to memoize the return value of a function?",
+          options: ["useEffect", "useCallback", "useMemo", "useRef"],
+          correctOptionIndex: 2,
+          points: 100
+        }
+      ]
     }
   ]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [analytics, setAnalytics] = useState<ExamStats[]>([]);
+
+  // داتای ناردراوی قوتابییەکان (Submissions) بۆ ئەوەی مامۆستا نمرەکان ببینێت
+  const [submissions, setSubmissions] = useState<Submission[]>([
+    {
+      id: "sub-1",
+      examId: "exam-1",
+      studentId: "u-1",
+      studentName: "David Miller",
+      answers: [{ questionId: "q1", selectedOptionIndex: 2 }, { questionId: "q2", selectedOptionIndex: 1 }],
+      score: 100,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 0,
+      isGraded: true
+    },
+    {
+      id: "sub-2",
+      examId: "exam-1",
+      studentId: "u-3",
+      studentName: "Alex Rivera",
+      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 1 }],
+      score: 50,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 3, // ئەم کاندیدە فڵاگی هەیە بۆ تاقیکردنەوەی لۆژیکی سیکیۆریتی
+      isGraded: true
+    }
+  ]);
+
+  // ستاتیستیک و شیکاری پۆلی مامۆستا (Analytics) بۆ ئەوەی هێڵکاری و ژمارەکان پڕ بن
+  const [analytics, setAnalytics] = useState<ExamStats[]>([
+    {
+      examId: "exam-1",
+      examTitle: "Midterm Examination 2026",
+      averageScore: 75,
+      highestScore: 100,
+      lowestScore: 50,
+      totalSubmissions: 2,
+      flaggedSessionsCount: 1
+    },
+    {
+      examId: "exam-2",
+      examTitle: "Web Development Advanced Quiz",
+      averageScore: 0,
+      highestScore: 0,
+      lowestScore: 0,
+      totalSubmissions: 0,
+      flaggedSessionsCount: 0
+    }
+  ]);
+
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // دەیکەینە false بۆ ئەوەی ڕاستەوخۆ نیشانی بدات
+  const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginRole, setLoginRole] = useState<"student" | "teacher">("student");
   const [authError, setAuthError] = useState("");
 
-  // ئەم فانکشنە ئێستا داتای ناوخۆیی نوێ دەکاتەوە لە جیاتی سێرڤەر
   const refreshAppData = async () => {
     setLoading(true);
-    // لۆژیکی ناوخۆیی لێرەدا دەمێنێتەوە بەبێ کێشەی API
-    setLoading(false);
+    // لۆژیکی ڕیفرێش لەسەر داتای ناوخۆیی بە جێگیری دەمێنێتەوە
+    setTimeout(() => {
+      setLoading(false);
+    }, 400);
   };
 
   const handleCustomLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim()) return;
 
-    // لۆژیکی لۆگین بە شێوازی ناوخۆیی بۆ کارکردنی خێرا
     if (loginEmail.includes("teacher") || loginRole === "teacher") {
       setCurrentUser({
         id: "u-2",
@@ -113,14 +191,13 @@ export default function App() {
       className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900"
       id="applet-container"
     >
-      {/* 1. Commercialized Header Navigation */}
+      {/* Navigation Header */}
       <header
         className="bg-white border-b border-slate-200 sticky top-0 z-40"
         id="navbar"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
-            {/* White-Label Logo Brand */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-sm shadow-indigo-600/10">
                 <GraduationCap className="w-6 h-6" />
@@ -141,14 +218,13 @@ export default function App() {
                   <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
                     <span className="text-[8px] font-bold text-emerald-600">
-                      SYSTEM STABLE
+                      SYSTEM DATA LIVE
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Profile Workspace Status Banner */}
             <div className="flex items-center gap-4">
               {currentUser ? (
                 <div className="flex items-center gap-3">
@@ -192,108 +268,68 @@ export default function App() {
         </div>
       </header>
 
-      {/* 2. Main Workspace Layout */}
+      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center text-slate-500 space-y-4 animate-fade-in">
-            <div className="p-4 bg-indigo-50 rounded-full ring-4 ring-indigo-500/10">
-              <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-            </div>
-            <div className="text-center space-y-1">
-              <p className="font-semibold text-slate-800">
-                Synchronizing EduPortal Assets
-              </p>
-              <p className="text-xs text-slate-400">
-                Loading exam sheets, proctor logs, and analytics counters...
-              </p>
-            </div>
+          <div className="py-24 flex flex-col items-center justify-center text-slate-500 space-y-4">
+            <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
+            <p className="font-semibold text-slate-800">Updating View Metrics...</p>
           </div>
         ) : (
           <>
             {!currentUser ? (
-              <div className="max-w-5xl mx-auto my-6 lg:my-10" id="login-layout-panel">
+              <div className="max-w-5xl mx-auto my-10" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                  <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-lg relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
-
-                    <div className="space-y-6 relative z-15">
-                      <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs text-indigo-200 font-medium">
+                  <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-lg">
+                    <div className="space-y-6">
+                      <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs text-indigo-200">
                         <Activity className="w-3 h-3 text-emerald-400" />
-                        <span>Ready for Commercial Deployment</span>
+                        <span>Mock Sandbox Enabled</span>
                       </div>
-
-                      <div className="space-y-3">
-                        <h2 className="text-3xl font-extrabold tracking-tight leading-tight">
-                          Enterprise Grade Educational Metrics.
-                        </h2>
-                        <p className="text-indigo-200/90 text-sm leading-relaxed">
-                          A plug-and-play white-label SaaS solution engineered to scale
-                          examination cycles securely with integrated anti-cheat behaviors.
-                        </p>
-                      </div>
-
-                      <div className="space-y-4 pt-4">
-                        <div className="flex gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/20 flex items-center justify-center shrink-0">
-                            <ShieldCheck className="w-4 h-4 text-indigo-300" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-white">
-                              Browser Proctor Engine
-                            </p>
-                            <p className="text-xs text-indigo-200 mt-0.5">
-                              Monitors window focus & switches, instantly flagging suspicious sessions.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                      <h2 className="text-3xl font-extrabold tracking-tight">
+                        Enterprise Examination Dashboard.
+                      </h2>
+                      <p className="text-indigo-200/90 text-sm">
+                        Tested layout using robust baseline objects mimicking high volume database synchronization.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-md p-8 flex flex-col justify-between">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                          Access Secure Workspace
-                        </h3>
+                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8">
+                    <form onSubmit={handleCustomLogin} className="space-y-5">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          EMAIL ADDRESS
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="student@example.com یان teacher@example.com"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+                        />
                       </div>
-
-                      <form onSubmit={handleCustomLogin} className="space-y-5">
-                        <div className="space-y-2">
-                          <label className="text-xs font-bold text-slate-700 tracking-wider uppercase block">
-                            Corporate Email Address
-                          </label>
-                          <input
-                            type="email"
-                            required
-                            placeholder="student@example.com"
-                            value={loginEmail}
-                            onChange={(e) => setLoginEmail(e.target.value)}
-                            className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none text-slate-800"
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl"
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">SELECT DEFAULT ROLE</label>
+                        <select 
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+                          value={loginRole}
+                          onChange={(e) => setLoginRole(e.target.value as "student" | "teacher")}
                         >
-                          Establish Session
-                        </button>
-                      </form>
-                    </div>
+                          <option value="student">Student (David Miller)</option>
+                          <option value="teacher">Teacher (Dr. Sarah Jenkins)</option>
+                        </select>
+                      </div>
+                      <button type="submit" className="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl">
+                        Enter Sandbox Workspace
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-6">
-                <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-3xs">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">
-                      Welcome back, {currentUser.name}
-                    </h2>
-                  </div>
-                </div>
-
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
                     currentUser={currentUser}
