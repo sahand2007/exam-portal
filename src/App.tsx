@@ -188,7 +188,7 @@ export default function App() {
                   <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Enterprise SaaS Live</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 leading-none">
-                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Baban Computer Institute Environment</span>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider"> Institute Environment</span>
                   <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
                     <span className="text-[8px] font-bold text-emerald-600">DB SERVER LIVE</span>
