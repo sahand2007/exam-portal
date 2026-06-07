@@ -9,11 +9,12 @@ import {
   RefreshCw,
   Activity,
   BarChart3,
-  Lock
+  Lock,
+  UserCheck
 } from "lucide-react";
 
 export default function App() {
-  // 🔄 لێرەدا بەکارهێنەر بە null دادەنێین تاوەکو یەکسەر شاشەی تاقیکردنەوەی لۆگین (Login Panel) پیشان بدرێت
+  // بەکارهێنەر بە null دادەنێین بۆ ئەوەی یەکسەر شاشەی لۆگین پیشان بدرێت
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // کۆمەڵێک تاقیکردنەوەی دەوڵەمەند بۆ جوانکردنی ڕیکلام و پۆرتالەکە
@@ -139,16 +140,16 @@ export default function App() {
 
   const refreshAppData = async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     setLoading(false);
   };
 
+  // فانکشنی لۆگینی فەرمی فۆرمەکە
   const handleCustomLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim()) return;
 
     setLoading(true);
-    // بەکارهێنانی تایم ئاوت بۆ ڕێگری لە بلۆکبوونی یو ئای لە کاتی گۆڕینی شاشەکان
     setTimeout(() => {
       if (loginEmail.includes("teacher") || loginRole === "teacher") {
         setCurrentUser({
@@ -168,11 +169,36 @@ export default function App() {
       setLoginEmail("");
       setActiveExamId(null);
       setLoading(false);
-    }, 80);
+    }, 50);
+  };
+
+  // ⚡ فانکشنی نوێ بۆ لۆگینی خێرای دێمۆ (Quick Demo Login)
+  const handleQuickDemoLogin = (roleType: "student" | "teacher") => {
+    setLoading(true);
+    setTimeout(() => {
+      if (roleType === "teacher") {
+        setCurrentUser({
+          id: "u-2",
+          email: "teacher@example.com",
+          name: "Dr. Sarah Jenkins",
+          role: Role.TEACHER,
+        });
+      } else {
+        setCurrentUser({
+          id: "u-1",
+          email: "student@example.com",
+          name: "David Miller",
+          role: Role.STUDENT,
+        });
+      }
+      setActiveExamId(null);
+      setLoading(false);
+    }, 50);
   };
 
   const handleRoleQuickSwitch = () => {
     if (activeExamId) {
+      // بۆ ڕێگری لە بلۆکبوون، ئالێرتەکە دەخرێتە ناو ڕێکخستنی جیاوازەوە
       const confirmLeave = window.confirm(
         "You are currently in an active exam. Switching roles now will lose progress. Proceed?"
       );
@@ -265,7 +291,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* ⚠️ لۆژیکی ئاگاداری سیکیۆریتی: تەنها کاتێک دەرکەوێت کە قوتابی لە ناو تاقیکردنی چالاکدایە */}
+            {/* ⚠️ لۆژیکی ئاگاداری سیکیۆریتی تەنها لە کاتی تاقیکردنەوەی چالاکدا */}
             {currentUser && currentUser.role === Role.STUDENT && activeExamId && (
               <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-xs animate-pulse">
                 <div className="flex items-start gap-3">
@@ -289,7 +315,7 @@ export default function App() {
               </div>
             )}
 
-            {/* 🔐 بەشی لۆگینی گەڕاوە (Login Test Interface) */}
+            {/* 🔐 بەشی لۆگین لەگەڵ دێمۆ لۆگینی خێرا */}
             {!currentUser ? (
               <div className="max-w-5xl mx-auto my-10 animate-fade-in" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
@@ -312,7 +338,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
                     <form onSubmit={handleCustomLogin} className="space-y-5">
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
@@ -338,15 +364,42 @@ export default function App() {
                           <option value="student">Student Sandbox View (David Miller)</option>
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md active:scale-[0.99] transition-all cursor-pointer">
+                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer">
                         Launch Premium Presentation Workspace
                       </button>
                     </form>
+
+                    {/* ⚡ لۆگینی دێمۆی خێرا (Quick Demo Accounts) */}
+                    <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Quick Demo Sandbox Profiles</span>
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDemoLogin("teacher")}
+                          className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer"
+                        >
+                          <span>🔬 Teacher View</span>
+                          <span className="text-[10px] text-slate-400 font-normal mt-0.5">Dr. Sarah (Analytics)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDemoLogin("student")}
+                          className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer"
+                        >
+                          <span>🎓 Student View</span>
+                          <span className="text-[10px] text-slate-400 font-normal mt-0.5">David Miller (Exam Sheets)</span>
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               </div>
             ) : (
-              /* 🖥️ بەشی لۆدبوونی پۆرتالەکان دوای لۆگین */
+              /* 🖥️ بەشی پۆرتالەکان دوای لۆگین */
               <div className="space-y-6">
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
