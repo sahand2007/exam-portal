@@ -164,7 +164,7 @@ export default function StudentPortal({
       }
     } catch (e) {
       console.error("Submission backend system unreachable", e);
-    } finaly {
+    } finally {
       setSubmitting(false);
     }
   };
@@ -287,7 +287,7 @@ export default function StudentPortal({
                 })}
               </div>
 
-              {/* ⚡ گۆڕینی پرسیارەکان بە شێوازی لیست (Pagination / Question Bar Switcher) */}
+              {/* Question Pagination Bar Switcher */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-wrap items-center justify-center gap-2 mt-4">
                 {activeExam.questions.map((_, idx) => {
                   const isCurrent = currentQuestionIndex === idx;
