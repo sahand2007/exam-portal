@@ -5,19 +5,10 @@ import TeacherPortal from "./components/TeacherPortal";
 import {
   GraduationCap,
   ShieldAlert,
-  Award,
-  Users,
-  LogIn,
   ArrowLeftRight,
-  HelpCircle,
-  AlertCircle,
   RefreshCw,
-  Mail,
   ShieldCheck,
-  CheckCircle,
   Activity,
-  ChevronRight,
-  Database,
   BarChart3
 } from "lucide-react";
 
@@ -43,7 +34,7 @@ export default function App() {
           id: "q1",
           text: "Which of the following describes a React Server Component (RSC) correctly?",
           options: [
-            "They re-render fully on the client side after the initial hydration hydration process.",
+            "They re-render fully on the client side after the initial hydration process.",
             "They execute exclusively on the server and reduce the final client-side bundle size.",
             "They require dynamic configuration parameters via the legacy useMemo hook architecture.",
             "They lack direct native pipeline integration with Cloudflare network wrappers."
@@ -136,7 +127,7 @@ export default function App() {
       answers: [{ questionId: "q1", selectedOptionIndex: 0 }, { questionId: "q2", selectedOptionIndex: 2 }],
       score: 50,
       submittedAt: new Date().toISOString(),
-      proctorFlags: 4, // نیشاندانی سیستەمی دژە فێڵ (Proctoring) بە فڵاگی زۆرەوە بۆ سکرین شۆت
+      proctorFlags: 4,
       isGraded: true
     },
     {
@@ -221,37 +212,40 @@ export default function App() {
 
   const [loginEmail, setLoginEmail] = useState("");
   const [loginRole, setLoginRole] = useState<"student" | "teacher">("student");
-  const [authError, setAuthError] = useState("");
 
+  // بۆ ڕێگری لە بلۆکبوونی UI، کارەکە دەخرێتە ناو کۆنتێکستێکی ئەسینک
   const refreshAppData = async () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 300);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    setLoading(false);
   };
 
   const handleCustomLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim()) return;
 
-    if (loginEmail.includes("teacher") || loginRole === "teacher") {
-      setCurrentUser({
-        id: "u-2",
-        email: loginEmail,
-        name: "Dr. Sarah Jenkins",
-        role: Role.TEACHER,
-      });
-    } else {
-      setCurrentUser({
-        id: "u-1",
-        email: loginEmail,
-        name: "David Miller",
-        role: Role.STUDENT,
-      });
-    }
-    setAuthError("");
-    setLoginEmail("");
-    setActiveExamId(null);
+    setLoading(true);
+    // بەکارهێنانی setTimeout بۆ ئەوەی ڕێگا بە ئەنیمەیشنی دوگمەکە بدرێت بە جێگیری کار بکات
+    setTimeout(() => {
+      if (loginEmail.includes("teacher") || loginRole === "teacher") {
+        setCurrentUser({
+          id: "u-2",
+          email: loginEmail,
+          name: "Dr. Sarah Jenkins",
+          role: Role.TEACHER,
+        });
+      } else {
+        setCurrentUser({
+          id: "u-1",
+          email: loginEmail,
+          name: "David Miller",
+          role: Role.STUDENT,
+        });
+      }
+      setLoginEmail("");
+      setActiveExamId(null);
+      setLoading(false);
+    }, 50);
   };
 
   const handleRoleQuickSwitch = () => {
@@ -302,7 +296,7 @@ export default function App() {
                   <span className="text-lg font-bold tracking-tight text-slate-900">
                     EduPortal
                   </span>
-                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                     Enterprise SaaS Live
                   </span>
                 </div>
@@ -338,7 +332,6 @@ export default function App() {
 
                   <button
                     onClick={handleRoleQuickSwitch}
-                    title="Toggle Workspace Context for Showcase Testing"
                     className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow-sm flex items-center gap-2 transition-all"
                   >
                     <ArrowLeftRight className="w-3.5 h-3.5" />
@@ -371,6 +364,30 @@ export default function App() {
           </div>
         ) : (
           <>
+            {/* ⚠️ ڕێکخستنی سیستەمی هۆشیارکردنەوەی سیکیۆریتی لە کاتی تاقیکردنەوەی چالاکدا */}
+            {activeExamId && (
+              <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-xs animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="p-1 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
+                    <ShieldAlert className="w-5 h-5 animate-bounce" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black tracking-wider uppercase text-amber-850">
+                        SECURITY MONITOR ACTIVE
+                      </span>
+                      <span className="bg-amber-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-widest">
+                        LIVE
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-amber-900 mt-1 leading-relaxed">
+                      Do NOT minimize or switch tabs! Tab changes are monitored and reported.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {!currentUser ? (
               <div className="max-w-5xl mx-auto my-10" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
