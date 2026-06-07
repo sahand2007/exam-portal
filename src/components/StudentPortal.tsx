@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Exam, AnswerSelection, Submission } from "../types";
-import { Calendar, Clock, Award, FileSpreadsheet, CheckCircle, AlertTriangle, ArrowRight, ArrowLeft, ShieldAlert, Award as Trophy } from "lucide-react";
+import { Calendar, Clock, Award, FileSpreadsheet, CheckCircle, AlertTriangle, ArrowRight, ArrowLeft, ShieldAlert, Award as Trophy, Edit3 } from "lucide-react";
 
 interface StudentPortalProps {
   currentUser: User;
@@ -31,26 +31,21 @@ export default function StudentPortal({
   const [submitting, setSubmitting] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState<Submission | null>(null);
 
-  // Custom Confirmation Modal instead of browser window.confirm
+  // Custom Confirmation Modal
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Certificate modal state
   const [activeCertificateSubmission, setActiveCertificateSubmission] = useState<Submission | null>(null);
 
-  // Find unique subject lists
   const subjects = ["all", ...Array.from(new Set(exams.map(e => e.subject || "General")))];
-
-  // Selected Exam object
   const activeExam = exams.find(e => e.id === activeExamId);
 
-  // Set up tab-switching cheating prevention trigger
+  // Tab-switching cheating prevention
   useEffect(() => {
     if (!activeExamId || showConfirmModal) return;
 
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setTabWarnings(prev => prev + 1);
-      }
+      if (document.hidden) setTabWarnings(prev => prev + 1);
     };
 
     const handleWindowBlur = () => {
@@ -66,7 +61,7 @@ export default function StudentPortal({
     };
   }, [activeExamId, showConfirmModal]);
 
-  // Exam Countdown Timer
+  // Exam Countdown Timer & State Init
   useEffect(() => {
     if (!activeExamId || !activeExam) return;
 
@@ -74,8 +69,14 @@ export default function StudentPortal({
     setTimeLeft(duration * 60);
     setCurrentQuestionIndex(0);
     setTabWarnings(0);
+    
+    // کاتی دروستکردنی ئۆبجێکتی وەڵامەکان، پشتگیری لە پیت یان دەق دەکەین
     setCurrentQuestionsAnswers(
-      activeExam.questions.map(q => ({ questionId: q.id, selectedOptionIndex: -1 }))
+      activeExam.questions.map(q => ({ 
+        questionId: q.id, 
+        selectedOptionIndex: -1,
+        textAnswer: "" // لێرەدا وەڵامی دەقی پاشەکەوت دەبێت
+      }))
     );
 
     const interval = setInterval(() => {
@@ -104,14 +105,58 @@ export default function StudentPortal({
     setShowConfirmModal(false);
   };
 
+  // وەڵامدانەوەی پرسیاری فرەبژاردن
   const handleSelectOption = (questionId: string, optionIndex: number) => {
     setCurrentQuestionsAnswers(prev =>
       prev.map(item =>
         item.questionId === questionId
-          ? { ...item, selectedOptionIndex: optionIndex }
+          ? { ...item, selectedOptionIndex: optionIndex, textAnswer: "" }
           : item
       )
     );
+  };
+
+  // وەڵامدانەوەی پرسیاری نوسین (Short Answer)
+  const handleTextAnswerChange = (questionId: string, text: string) => {
+    setCurrentQuestionsAnswers(prev =>
+      prev.map(item =>
+        item.questionId === questionId
+          ? { ...item, textAnswer: text, selectedOptionIndex: -2 } // -2 وەک هێما بۆ وەڵامی نوسین
+          : item
+      )
+    );
+  };
+
+  // لۆجیکی پشکنینی خودکاری ناوخۆیی (Auto-Check Metric)
+  const calculateScoresLocally = (answers: AnswerSelection[]): number => {
+    if (!activeExam) return 0;
+    let totalScore = 0;
+    const pointsPerQuestion = 100 / activeExam.questions.length;
+
+    activeExam.questions.forEach((q, idx) => {
+      const studentAns = answers[idx];
+      if (!studentAns) return;
+
+      // ئەگەر پرسیارەکە جۆری وەڵامی کورت بوو
+      if (q.type === "short-answer" || !q.options || q.options.length === 0) {
+        const cleanStudentAns = (studentAns.textAnswer || "").trim().toLowerCase();
+        
+        // وەڵامی ڕاست دەکرێت لەناو q.correctAnswer یان لۆکاڵی بێت
+        const correctAnswer = ((q as any).correctAnswer || "").trim().toLowerCase();
+        
+        if (cleanStudentAns && correctAnswer && cleanStudentAns === correctAnswer) {
+          totalScore += q.points || pointsPerQuestion;
+        }
+      } else {
+        // بۆ پرسیاری فرەبژاردنی ئاسایی
+        const correctIdx = (q as any).correctOptionIndex !== undefined ? (q as any).correctOptionIndex : 0;
+        if (studentAns.selectedOptionIndex === correctIdx) {
+          totalScore += q.points || pointsPerQuestion;
+        }
+      }
+    });
+
+    return Math.min(100, Math.round(totalScore));
   };
 
   const triggerAutomaticSubmission = async () => {
@@ -141,17 +186,19 @@ export default function StudentPortal({
         setActiveExamId(null);
         onRefreshData();
       } else {
-        const calculatedMockScore = Math.floor(Math.random() * 20) * 5 + PassMockBenchmark(answersToSend);
+        // ئەگەر سێرڤەر وەڵامی نەدایەوە، لۆجیکی خودکارەکە لێرە کاردەکات
+        const calculatedMockScore = calculateScoresLocally(answersToSend);
+        
         const fallbackPayload: Submission = {
-          id: "sub-mock-" + Date.now(),
+          id: "sub-auto-" + Date.now(),
           examId: activeExamId || "exam-1",
           examTitle: activeExam?.title || "Assessment Sheet Node",
           studentId: currentUser.id,
           studentName: currentUser.name,
           answers: answersToSend,
-          score: calculatedMockScore > 100 ? 100 : calculatedMockScore,
+          score: calculatedMockScore,
           totalPoints: 100,
-          percentage: calculatedMockScore > 100 ? 100 : calculatedMockScore,
+          percentage: calculatedMockScore,
           passed: calculatedMockScore >= 50,
           submittedAt: new Date().toISOString(),
           tabLeavesWarningCount: finalWarnings,
@@ -169,22 +216,6 @@ export default function StudentPortal({
     }
   };
 
-  const PassMockBenchmark = (answers: AnswerSelection[]) => {
-    let base = 50;
-    answers.forEach(a => { if(a.selectedOptionIndex !== -1) base += 15; });
-    return base;
-  };
-
-  const handleSubmitExamClick = () => {
-    setShowConfirmModal(true);
-  };
-
-  const formatTime = (seconds: number) => {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-  };
-
   const filteredExams = exams.filter(exam => {
     const matchesSearch =
       exam.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,16 +225,20 @@ export default function StudentPortal({
   });
 
   const mySubmissions = submissions.filter(s => s.studentId === currentUser.id);
+  const currentQuestion = activeExam?.questions[currentQuestionIndex];
+  
+  // پشکنینی ئەوەی ئایا پرسیارە چالاکەکە وەڵامی کورتە؟
+  const isShortAnswerType = currentQuestion && (currentQuestion.type === "short-answer" || !currentQuestion.options || currentQuestion.options.length === 0);
 
   return (
     <div className="space-y-6" id="student-portal-wrapper">
-      {activeExamId && activeExam ? (
+      {activeExamId && activeExam && currentQuestion ? (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" id="active-exam-container">
           {/* Security Alert Header */}
           <div className="bg-amber-500 text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold gap-3">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 animate-bounce" />
-              <span>SECURITY MONITOR ACTIVE: Do NOT minimize or switch tabs! Tab changes are monitored and reported.</span>
+              <span>SECURITY MONITOR ACTIVE: Tab changes are monitored and reported.</span>
             </div>
             {tabWarnings > 0 && (
               <span className="bg-amber-700/80 px-2 py-1 rounded inline-flex items-center gap-1">
@@ -249,49 +284,69 @@ export default function StudentPortal({
           </div>
 
           <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Left side: Questions box and Nav buttons */}
             <div className="lg:col-span-3 space-y-6">
               <div className="bg-slate-50 rounded-xl p-5 border border-slate-200/60 max-w-none">
                 <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-3">
-                  <span>QUESTION {currentQuestionIndex + 1}</span>
-                  <span className="font-mono text-indigo-600 font-bold">{activeExam.questions[currentQuestionIndex].points || 50} Points</span>
+                  <span className="flex items-center gap-1">
+                    {isShortAnswerType ? <Edit3 className="w-3..5 h-3.5 text-amber-600" /> : null}
+                    {isShortAnswerType ? "SHORT ANSWER QUESTION" : "MULTIPLE CHOICE QUESTION"} {currentQuestionIndex + 1}
+                  </span>
+                  <span className="font-mono text-indigo-600 font-bold">{currentQuestion.points || 10} Points</span>
                 </div>
                 <h3 className="text-slate-800 font-semibold text-base md:text-lg select-none leading-relaxed">
-                  {activeExam.questions[currentQuestionIndex].text}
+                  {currentQuestion.text}
                 </h3>
               </div>
 
-              {/* Options mapping list */}
-              <div className="space-y-3">
-                {activeExam.questions[currentQuestionIndex].options.map((opt, i) => {
-                  const isSelected = currentQuestionsAnswers[currentQuestionIndex]?.selectedOptionIndex === i;
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => handleSelectOption(activeExam.questions[currentQuestionIndex].id, i)}
-                      className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 select-none ${
-                        isSelected
-                          ? "border-indigo-600 bg-indigo-50 text-indigo-900 font-medium shadow-xs"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700"
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded-full border shrink-0 flex items-center justify-center font-bold text-xs mt-0.5 ${
-                        isSelected ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 text-slate-400"
-                      }`}>
-                        {String.fromCharCode(65 + i)}
-                      </div>
-                      <span className="text-sm md:text-base">{opt}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {/* لۆجیکی پیشاندانی ڕوکار بەپێی جۆری پرسیارەکە */}
+              {isShortAnswerType ? (
+                <div className="space-y-2 animate-fade-in">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block">Write your answer here:</label>
+                  <input
+                    type="text"
+                    value={currentQuestionsAnswers[currentQuestionIndex]?.textAnswer || ""}
+                    onChange={(e) => handleTextAnswerChange(currentQuestion.id, e.target.value)}
+                    placeholder="Type the exact answer..."
+                    className="w-full p-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-white text-slate-800 font-medium transition-all text-sm md:text-base outline-none"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                  />
+                  <p className="text-[11px] text-slate-400">Note: Evaluation is case-insensitive and ignores leading/trailing spaces.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {currentQuestion.options?.map((opt, i) => {
+                    const isSelected = currentQuestionsAnswers[currentQuestionIndex]?.selectedOptionIndex === i;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => handleSelectOption(currentQuestion.id, i)}
+                        className={`w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 select-none cursor-pointer ${
+                          isSelected
+                            ? "border-indigo-600 bg-indigo-50 text-indigo-900 font-medium shadow-xs"
+                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700"
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full border shrink-0 flex items-center justify-center font-bold text-xs mt-0.5 ${
+                          isSelected ? "border-indigo-600 bg-indigo-600 text-white" : "border-slate-300 text-slate-400"
+                        }`}>
+                          {String.fromCharCode(65 + i)}
+                        </div>
+                        <span className="text-sm md:text-base">{opt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
-              {/* Question Pagination Bar Switcher */}
+              {/* Question Pagination Bar */}
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-wrap items-center justify-center gap-2 mt-4">
                 {activeExam.questions.map((_, idx) => {
                   const isCurrent = currentQuestionIndex === idx;
-                  const hasAnswered = currentQuestionsAnswers[idx]?.selectedOptionIndex !== -1;
+                  const ansObj = currentQuestionsAnswers[idx];
+                  const hasAnswered = ansObj && (ansObj.selectedOptionIndex !== -1 || (ansObj.textAnswer && ansObj.textAnswer.trim() !== ""));
                   
                   return (
                     <button
@@ -318,7 +373,7 @@ export default function StudentPortal({
                   type="button"
                   onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
                   disabled={currentQuestionIndex === 0}
-                  className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition-all disabled:opacity-40 disabled:hover:bg-white cursor-pointer inline-flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition-all disabled:opacity-40 cursor-pointer inline-flex items-center gap-1.5"
                 >
                   <ArrowLeft className="w-4 h-4" /> Previous
                 </button>
@@ -355,13 +410,7 @@ export default function StudentPortal({
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
                   <span>Answered:</span>
                   <span className="font-bold text-emerald-600">
-                    {currentQuestionsAnswers.filter(a => a.selectedOptionIndex !== -1).length}
-                  </span>
-                </div>
-                <div className="flex justify-between pb-1">
-                  <span>Remaining:</span>
-                  <span className="font-bold text-amber-600">
-                    {currentQuestionsAnswers.filter(a => a.selectedOptionIndex === -1).length}
+                    {currentQuestionsAnswers.filter(a => a.selectedOptionIndex !== -1 || (a.textAnswer && a.textAnswer.trim() !== "")).length}
                   </span>
                 </div>
               </div>
@@ -369,7 +418,6 @@ export default function StudentPortal({
               <div className="mt-6 pt-5 border-t border-slate-200 space-y-2 text-[11px] text-slate-500">
                 <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span>Answered Question</span></div>
                 <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded border border-slate-300 bg-white inline-block"></span><span>Unanswered Question</span></div>
-                <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-indigo-600 inline-block"></span><span>Active Selection</span></div>
               </div>
             </div>
           </div>
@@ -383,12 +431,9 @@ export default function StudentPortal({
                   <CheckCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-emerald-900 text-lg">Exam Submitted Successfully!</h3>
+                  <h3 className="font-bold text-emerald-900 text-lg">Exam Evaluated Self-Checked!</h3>
                   <p className="text-emerald-700 text-sm mt-1">
                     Your answers were calculated. You scored <span className="font-bold">{justSubmitted.score} out of {justSubmitted.totalPoints || 100} points</span> ({justSubmitted.percentage}%).
-                  </p>
-                  <p className="text-emerald-600 text-xs mt-1">
-                    Proctor warnings logged: <span className="font-semibold text-slate-700">{justSubmitted.tabLeavesWarningCount} instances</span>.
                   </p>
                 </div>
               </div>
@@ -400,8 +445,7 @@ export default function StudentPortal({
                     onClick={() => setActiveCertificateSubmission(justSubmitted)}
                     className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-xs cursor-pointer"
                   >
-                    <Trophy className="w-4 h-4 text-emerald-100" />
-                    Claim Certificate
+                    <Trophy className="w-4 h-4 text-emerald-100" /> Claim Certificate
                   </button>
                 ) : (
                   <span className="bg-amber-100 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-xs">Please practice and try again!</span>
@@ -417,6 +461,7 @@ export default function StudentPortal({
             </div>
           )}
 
+          {/* List of Exams */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -428,7 +473,7 @@ export default function StudentPortal({
                   <select
                     value={selectedSubject}
                     onChange={e => setSelectedSubject(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                    className="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
                   >
                     {subjects.map(sub => (
                       <option key={sub} value={sub}>{sub === "all" ? "All Subjects" : sub}</option>
@@ -452,7 +497,7 @@ export default function StudentPortal({
                         <div>
                           <div className="flex items-center justify-between gap-1.5 mb-3">
                             <span className="px-2 py-0.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 rounded">{exam.subject || "General"}</span>
-                            <span className="text-xs text-slate-400 flex items-center gap-1 font-mono"><Clock className="w-3.5 h-3.5 text-slate-400" />{minutes} Min</span>
+                            <span className="text-xs text-slate-400 flex items-center gap-1 font-mono"><Clock className="w-3.5 h-3.5" />{minutes} Min</span>
                           </div>
                           <h4 className="font-bold text-slate-800 text-sm leading-snug">{exam.title}</h4>
                           <p className="text-slate-400 text-xs mt-2 line-clamp-3 leading-relaxed">{exam.description}</p>
@@ -465,7 +510,7 @@ export default function StudentPortal({
                             <button
                               type="button"
                               onClick={() => startExam(exam)}
-                              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm hover:translate-x-0.5 transition-all cursor-pointer"
+                              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer"
                             >
                               Take Exam <ArrowRight className="w-3.5 h-3.5" />
                             </button>
@@ -478,10 +523,11 @@ export default function StudentPortal({
               )}
             </div>
 
+            {/* Scorecard Sidebar */}
             <div className="space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
                 <h3 className="text-lg font-bold text-slate-800 mb-1">Your Submission Scorecard</h3>
-                <p className="text-slate-400 text-xs mb-4">Official list of completed exams representing your credentials.</p>
+                <p className="text-slate-400 text-xs mb-4">Official list of completed exams.</p>
                 {mySubmissions.length === 0 ? (
                   <div className="text-center p-6 bg-slate-50 rounded-lg border border-dashed border-slate-200">
                     <p className="text-xs text-slate-500">No active attempts have been completed yet.</p>
@@ -492,11 +538,8 @@ export default function StudentPortal({
                       <div key={sub.id} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-2 hover:bg-white transition-all shadow-xs">
                         <div>
                           <div className="flex justify-between items-start gap-2">
-                            <h4 className="font-bold text-slate-700 text-xs truncate max-w-[150px]" title={sub.examTitle}>{sub.examTitle}</h4>
-                            <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded shrink-0 ${sub.passed ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{sub.passed ? "Passed" : "Retake"}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-400">
-                            <span>{sub.subject || "General"}</span><span>•</span><span>Points: {sub.score}/{sub.totalPoints || 100}</span>
+                            <h4 className="font-bold text-slate-700 text-xs truncate max-w-[150px]">{sub.examTitle}</h4>
+                            <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded ${sub.passed ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{sub.passed ? "Passed" : "Retake"}</span>
                           </div>
                         </div>
                         <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
@@ -530,7 +573,7 @@ export default function StudentPortal({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">Submit Examination Paper?</h3>
-              <p className="text-xs text-slate-500 mt-1">Are you sure you want to finalize and process your answers into the faculty portal?</p>
+              <p className="text-xs text-slate-500 mt-1">Are you sure you want to finalize and process your answers?</p>
             </div>
             <div className="flex gap-3 pt-2">
               <button
@@ -553,7 +596,7 @@ export default function StudentPortal({
         </div>
       )}
 
-      {/* Certificate modal */}
+      {/* Certificate Claim Modal */}
       {activeCertificateSubmission && (
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 relative max-h-[90vh] overflow-auto">
@@ -568,36 +611,21 @@ export default function StudentPortal({
               <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 mx-auto border-4 border-indigo-100/50">
                 <Trophy className="w-7 h-7" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-800">Honorary Certificate Claimed</h3>
-                <p className="text-slate-400 text-xs mt-1">This official document guarantees qualification completion.</p>
-              </div>
-              <div className="border-[8px] border-double border-indigo-900 bg-amber-50/20 p-5 rounded-lg text-center font-serif relative">
+              <div className="border-[8px] border-double border-indigo-900 bg-amber-50/20 p-5 rounded-lg text-center font-serif">
                 <h2 className="text-xl text-indigo-950 font-semibold tracking-wide">Certificate of Excellence</h2>
                 <p className="text-[10px] uppercase font-sans tracking-widest text-slate-500 mt-2">DULY PRESENTED TO</p>
                 <h3 className="text-lg italic text-slate-800 border-b border-slate-300 w-3/4 mx-auto pb-1 mt-2 mb-3">
                   {activeCertificateSubmission.studentName}
                 </h3>
-                <p className="text-xs text-slate-500 font-sans">for successfully completing the standardized assessment:</p>
                 <h4 className="font-sans font-bold text-sm text-indigo-950 mt-1 mb-3">{activeCertificateSubmission.examTitle}</h4>
                 <p className="text-xs text-slate-500 font-sans">
-                  with an aggregate score metric of <strong className="text-emerald-700 text-sm">{activeCertificateSubmission.percentage}%</strong> ({activeCertificateSubmission.score} / {activeCertificateSubmission.totalPoints || 100} points)
+                  with an aggregate score metric of <strong className="text-emerald-700 text-sm">{activeCertificateSubmission.percentage}%</strong>
                 </p>
-                <div className="flex justify-between items-end mt-6 pt-4 border-t border-slate-200 font-sans text-[10px] text-slate-400">
-                  <div className="text-left">
-                    <p>Date Issued: {new Date(activeCertificateSubmission.submittedAt).toLocaleDateString()}</p>
-                    <p>Auth Ref: {activeCertificateSubmission.id.substring(0, 10)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="border-b border-slate-300 pb-1 italic text-slate-600">Sarah Jenkins</p>
-                    <p className="mt-1">Examiner Signature</p>
-                  </div>
-                </div>
               </div>
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-lg text-xs font-semibold shadow-sm mt-4 transition-all cursor-pointer"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow-sm cursor-pointer"
               >
                 Print Certificate / Save PDF
               </button>
@@ -607,4 +635,11 @@ export default function StudentPortal({
       )}
     </div>
   );
+}
+
+// Helper formatting function
+function formatTime(seconds: number) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
 }
