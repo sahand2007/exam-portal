@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 export enum Role {
   STUDENT = 'student',
   TEACHER = 'teacher'
@@ -14,7 +16,7 @@ export interface Question {
   id: string;
   text: string;
   options: string[];
-  correctAnswerIndex: number; // Index in options array
+  correctAnswerIndex: number; 
   points: number;
 }
 
@@ -48,7 +50,7 @@ export interface Submission {
   passed: boolean;
   percentage: number;
   submittedAt: string;
-  tabLeavesWarningCount: number; // Mock cheating prevention tracker
+  tabLeavesWarningCount: number;
 }
 
 export interface ExamStats {
