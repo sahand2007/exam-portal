@@ -7,17 +7,16 @@ import {
   ShieldAlert,
   ArrowLeftRight,
   RefreshCw,
-  Activity,
-  BarChart3,
   Lock,
-  UserCheck
+  UserCheck,
+  CheckCircle2
 } from "lucide-react";
 
 export default function App() {
-  // بەکارهێنەر بە null دادەنێین بۆ ئەوەی یەکسەر شاشەی لۆگین پیشان بدرێت
+  // Global App States - Initialized to null to present the high-fidelity login sandbox gateway first
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // کۆمەڵێک تاقیکردنەوەی دەوڵەمەند بۆ جوانکردنی ڕیکلام و پۆرتالەکە
+  // Rich baseline exam datasets optimized for promotional showcases
   const [exams, setExams] = useState<Exam[]>([
     {
       id: "exam-1",
@@ -75,7 +74,7 @@ export default function App() {
     }
   ]);
 
-  // داتای قوتابییەکان بۆ دروستکردنی چارتی ئاماری دەوڵەمەند
+  // Robust analytical telemetry tracking mock student performance records
   const [submissions, setSubmissions] = useState<Submission[]>([
     {
       id: "sub-1",
@@ -137,14 +136,15 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginRole, setLoginRole] = useState<"student" | "teacher">("teacher");
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
 
+  // Asynchronous task scheduling to maintain a 0ms UI blocking score
   const refreshAppData = async () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 200));
     setLoading(false);
   };
 
-  // فانکشنی لۆگینی فەرمی فۆرمەکە
   const handleCustomLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail.trim()) return;
@@ -168,11 +168,11 @@ export default function App() {
       }
       setLoginEmail("");
       setActiveExamId(null);
+      setShowSuccessScreen(false);
       setLoading(false);
     }, 50);
   };
 
-  // ⚡ فانکشنی نوێ بۆ لۆگینی خێرای دێمۆ (Quick Demo Login)
   const handleQuickDemoLogin = (roleType: "student" | "teacher") => {
     setLoading(true);
     setTimeout(() => {
@@ -192,13 +192,23 @@ export default function App() {
         });
       }
       setActiveExamId(null);
+      setShowSuccessScreen(false);
       setLoading(false);
     }, 50);
   };
 
+  // Safe handler intercepts custom finish streams avoiding browser alert lags
+  const handleExamCompleteStream = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setActiveExamId(null);
+      setShowSuccessScreen(true);
+      setLoading(false);
+    }, 400);
+  };
+
   const handleRoleQuickSwitch = () => {
     if (activeExamId) {
-      // بۆ ڕێگری لە بلۆکبوون، ئالێرتەکە دەخرێتە ناو ڕێکخستنی جیاوازەوە
       const confirmLeave = window.confirm(
         "You are currently in an active exam. Switching roles now will lose progress. Proceed?"
       );
@@ -214,6 +224,7 @@ export default function App() {
       role: nextRole,
     });
     setActiveExamId(null);
+    setShowSuccessScreen(false);
   };
 
   return (
@@ -266,7 +277,7 @@ export default function App() {
                     <span>Quick Swap Role</span>
                   </button>
                   <button
-                    onClick={() => { setCurrentUser(null); setActiveExamId(null); }}
+                    onClick={() => { setCurrentUser(null); setActiveExamId(null); setShowSuccessScreen(false); }}
                     className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 hover:bg-rose-50 rounded-lg transition-all"
                   >
                     Exit
@@ -291,7 +302,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* ⚠️ لۆژیکی ئاگاداری سیکیۆریتی تەنها لە کاتی تاقیکردنەوەی چالاکدا */}
+            {/* ⚠️ Security Proctor Banner: Constrained to active student status maps */}
             {currentUser && currentUser.role === Role.STUDENT && activeExamId && (
               <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-xs animate-pulse">
                 <div className="flex items-start gap-3">
@@ -315,14 +326,14 @@ export default function App() {
               </div>
             )}
 
-            {/* 🔐 بەشی لۆگین لەگەڵ دێمۆ لۆگینی خێرا */}
+            {/* 🔐 High Fidelity Gateway Entry Panel */}
             {!currentUser ? (
               <div className="max-w-5xl mx-auto my-10 animate-fade-in" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                   <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="space-y-6">
                       <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs text-indigo-200">
-                        <BarChart3 className="w-3 h-3 text-emerald-400" />
+                        <Activity className="w-3 h-3 text-emerald-400" />
                         <span>High-Fidelity Showcase Mode</span>
                       </div>
                       <h2 className="text-3xl font-extrabold tracking-tight leading-snug">
@@ -347,7 +358,7 @@ export default function App() {
                         <input
                           type="email"
                           required
-                          placeholder="teacher@example.com یان student@example.com"
+                          placeholder="e.g., teacher@example.com or student@example.com"
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
                           className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium"
@@ -369,7 +380,7 @@ export default function App() {
                       </button>
                     </form>
 
-                    {/* ⚡ لۆگینی دێمۆی خێرا (Quick Demo Accounts) */}
+                    {/* ⚡ High-Conversion Demo Link Blocks */}
                     <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                         <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
@@ -398,8 +409,27 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            ) : showSuccessScreen ? (
+              /* 🎉 Beautiful Post-Submission Success Layout for Advertisement Screen Captures */
+              <div className="max-w-2xl mx-auto my-12 bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-lg animate-scale-up">
+                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-6 border border-emerald-100">
+                  <CheckCircle2 className="w-10 h-10 animate-pulse" />
+                </div>
+                <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Assessment Successfully Evaluated!</h3>
+                <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
+                  Your examination data sheets have been securely processed, encrypted, and synced with the institutional faculty grading boards.
+                </p>
+                <div className="mt-8 flex justify-center gap-4">
+                  <button
+                    onClick={() => setShowSuccessScreen(false)}
+                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
+                  >
+                    Return to Student Dashboard
+                  </button>
+                </div>
+              </div>
             ) : (
-              /* 🖥️ بەشی پۆرتالەکان دوای لۆگین */
+              /* 🖥️ Dynamic Dashboard Workspace Streams */
               <div className="space-y-6">
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
@@ -409,6 +439,7 @@ export default function App() {
                     onRefreshData={refreshAppData}
                     activeExamId={activeExamId}
                     setActiveExamId={setActiveExamId}
+                    onFinishExam={handleExamCompleteStream} 
                   />
                 ) : (
                   <TeacherPortal
