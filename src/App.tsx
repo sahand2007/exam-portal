@@ -13,10 +13,8 @@ import {
 } from "lucide-react";
 
 export default function App() {
-  // Global App States - Initialized to null to present the high-fidelity login sandbox gateway first
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // Rich baseline exam datasets optimized for promotional showcases
   const [exams, setExams] = useState<Exam[]>([
     {
       id: "exam-1",
@@ -74,7 +72,6 @@ export default function App() {
     }
   ]);
 
-  // Robust analytical telemetry tracking mock student performance records
   const [submissions, setSubmissions] = useState<Submission[]>([
     {
       id: "sub-1",
@@ -97,17 +94,6 @@ export default function App() {
       submittedAt: new Date().toISOString(),
       proctorFlags: 0,
       isGraded: true
-    },
-    {
-      id: "sub-3",
-      examId: "exam-1",
-      studentId: "u-5",
-      studentName: "Alex Rivera",
-      answers: [{ questionId: "q1", selectedOptionIndex: 0 }, { questionId: "q2", selectedOptionIndex: 2 }],
-      score: 50,
-      submittedAt: new Date().toISOString(),
-      proctorFlags: 4,
-      isGraded: true
     }
   ]);
 
@@ -118,16 +104,7 @@ export default function App() {
       averageScore: 83.3,
       highestScore: 100,
       lowestScore: 50,
-      totalSubmissions: 3,
-      flaggedSessionsCount: 1
-    },
-    {
-      examId: "exam-2",
-      examTitle: "Data Structures & Algorithm Frameworks",
-      averageScore: 0,
-      highestScore: 0,
-      lowestScore: 0,
-      totalSubmissions: 0,
+      totalSubmissions: 2,
       flaggedSessionsCount: 0
     }
   ]);
@@ -138,7 +115,6 @@ export default function App() {
   const [loginRole, setLoginRole] = useState<"student" | "teacher">("teacher");
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
 
-  // Asynchronous task scheduling to maintain a 0ms UI blocking score
   const refreshAppData = async () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -152,19 +128,9 @@ export default function App() {
     setLoading(true);
     setTimeout(() => {
       if (loginEmail.includes("teacher") || loginRole === "teacher") {
-        setCurrentUser({
-          id: "u-2",
-          email: loginEmail,
-          name: "Dr. Sarah Jenkins",
-          role: Role.TEACHER,
-        });
+        setCurrentUser({ id: "u-2", email: loginEmail, name: "Dr. Sarah Jenkins", role: Role.TEACHER });
       } else {
-        setCurrentUser({
-          id: "u-1",
-          email: loginEmail,
-          name: "David Miller",
-          role: Role.STUDENT,
-        });
+        setCurrentUser({ id: "u-1", email: loginEmail, name: "David Miller", role: Role.STUDENT });
       }
       setLoginEmail("");
       setActiveExamId(null);
@@ -177,19 +143,9 @@ export default function App() {
     setLoading(true);
     setTimeout(() => {
       if (roleType === "teacher") {
-        setCurrentUser({
-          id: "u-2",
-          email: "teacher@example.com",
-          name: "Dr. Sarah Jenkins",
-          role: Role.TEACHER,
-        });
+        setCurrentUser({ id: "u-2", email: "teacher@example.com", name: "Dr. Sarah Jenkins", role: Role.TEACHER });
       } else {
-        setCurrentUser({
-          id: "u-1",
-          email: "student@example.com",
-          name: "David Miller",
-          role: Role.STUDENT,
-        });
+        setCurrentUser({ id: "u-1", email: "student@example.com", name: "David Miller", role: Role.STUDENT });
       }
       setActiveExamId(null);
       setShowSuccessScreen(false);
@@ -197,25 +153,14 @@ export default function App() {
     }, 50);
   };
 
-  // Safe handler intercepts custom finish streams avoiding browser alert lags
-  const handleExamCompleteStream = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setActiveExamId(null);
-      setShowSuccessScreen(true);
-      setLoading(false);
-    }, 400);
+  // ⚡ ئەم گۆڕانکارییە لۆژیکی و مۆنیتەرەکە لە فریزبون دەپارێزێت و ناهێڵێت وۆڕنینگ زیاد بکات
+  const triggerSafeFinishStream = () => {
+    setActiveExamId(null);
+    setShowSuccessScreen(true);
   };
 
   const handleRoleQuickSwitch = () => {
-    if (activeExamId) {
-      const confirmLeave = window.confirm(
-        "You are currently in an active exam. Switching roles now will lose progress. Proceed?"
-      );
-      if (!confirmLeave) return;
-    }
     if (!currentUser) return;
-
     const nextRole = currentUser.role === Role.STUDENT ? Role.TEACHER : Role.STUDENT;
     setCurrentUser({
       id: nextRole === Role.STUDENT ? "u-1" : "u-2",
@@ -228,10 +173,7 @@ export default function App() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-indigo-100"
-      id="applet-container"
-    >
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-indigo-100" id="applet-container">
       {/* Navigation Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/90" id="navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -243,14 +185,10 @@ export default function App() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold tracking-tight text-slate-900">EduPortal</span>
-                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Enterprise SaaS Live
-                  </span>
+                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Enterprise SaaS Live</span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 leading-none">
-                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">
-                    Baban Computer Institute Environment
-                  </span>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Baban Computer Institute Environment</span>
                   <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
                     <span className="text-[8px] font-bold text-emerald-600">DB SERVER LIVE</span>
@@ -269,17 +207,11 @@ export default function App() {
                     </div>
                   </div>
                   <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-                  <button
-                    onClick={handleRoleQuickSwitch}
-                    className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow-sm flex items-center gap-2 transition-all"
-                  >
+                  <button onClick={handleRoleQuickSwitch} className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer">
                     <ArrowLeftRight className="w-3.5 h-3.5" />
                     <span>Quick Swap Role</span>
                   </button>
-                  <button
-                    onClick={() => { setCurrentUser(null); setActiveExamId(null); setShowSuccessScreen(false); }}
-                    className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 hover:bg-rose-50 rounded-lg transition-all"
-                  >
+                  <button onClick={() => { setCurrentUser(null); setActiveExamId(null); setShowSuccessScreen(false); }} className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 hover:bg-rose-50 rounded-lg transition-all">
                     Exit
                   </button>
                 </div>
@@ -302,134 +234,81 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* ⚠️ Security Proctor Banner: Constrained to active student status maps */}
             {currentUser && currentUser.role === Role.STUDENT && activeExamId && (
               <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-xs animate-pulse">
                 <div className="flex items-start gap-3">
                   <div className="p-1 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
-                    <ShieldAlert className="w-5 h-5 animate-bounce" />
+                    <ShieldAlert className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black tracking-wider uppercase text-amber-900">
-                        SECURITY MONITOR ACTIVE
-                      </span>
-                      <span className="bg-amber-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-widest">
-                        LIVE
-                      </span>
-                    </div>
-                    <p className="text-sm font-bold text-amber-900 mt-1 leading-relaxed">
-                      Do NOT minimize or switch tabs! Tab changes are monitored and reported.
-                    </p>
+                    <span className="text-xs font-black tracking-wider uppercase text-amber-900">SECURITY MONITOR ACTIVE</span>
+                    <p className="text-sm font-bold text-amber-900 mt-1">Do NOT minimize or switch tabs! Tab changes are monitored and reported.</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 🔐 High Fidelity Gateway Entry Panel */}
             {!currentUser ? (
-              <div className="max-w-5xl mx-auto my-10 animate-fade-in" id="login-layout-panel">
+              <div className="max-w-5xl mx-auto my-10 animate-fade-in">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                   <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="space-y-6">
                       <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs text-indigo-200">
-                        <Activity className="w-3 h-3 text-emerald-400" />
+                        <Lock className="w-3 h-3 text-emerald-400" />
                         <span>High-Fidelity Showcase Mode</span>
                       </div>
-                      <h2 className="text-3xl font-extrabold tracking-tight leading-snug">
-                        AI-Powered Proctored Assessment Engine.
-                      </h2>
-                      <p className="text-indigo-200/90 text-sm leading-relaxed">
-                        Simulating secure database models with automatic evaluation workflows, full student metric indexing, and proctoring logs.
-                      </p>
-                    </div>
-                    <div className="pt-8 border-t border-indigo-500/30 flex items-center gap-2 text-indigo-200 text-xs font-semibold">
-                      <Lock className="w-4 h-4 text-emerald-400" />
-                      <span>End-to-End Encrypted Environment</span>
+                      <h2 className="text-3xl font-extrabold tracking-tight">AI-Powered Proctored Assessment Engine.</h2>
+                      <p className="text-indigo-200/90 text-sm leading-relaxed">Simulating secure database models with automatic evaluation workflows, full student metric indexing, and proctoring logs.</p>
                     </div>
                   </div>
 
                   <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
                     <form onSubmit={handleCustomLogin} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
-                          Institutional Email Identifier
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="e.g., teacher@example.com or student@example.com"
-                          value={loginEmail}
-                          onChange={(e) => setLoginEmail(e.target.value)}
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium"
-                        />
+                        <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Institutional Email Identifier</label>
+                        <input type="email" required placeholder="e.g., teacher@example.com or student@example.com" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Select Dashboard Profile</label>
-                        <select 
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-semibold"
-                          value={loginRole}
-                          onChange={(e) => setLoginRole(e.target.value as "student" | "teacher")}
-                        >
+                        <select className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-semibold" value={loginRole} onChange={(e) => setLoginRole(e.target.value as "student" | "teacher")}>
                           <option value="teacher">Faculty Examiner View (Dr. Sarah Jenkins)</option>
                           <option value="student">Student Sandbox View (David Miller)</option>
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer">
-                        Launch Premium Presentation Workspace
-                      </button>
+                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer">Launch Premium Presentation Workspace</button>
                     </form>
 
-                    {/* ⚡ High-Conversion Demo Link Blocks */}
                     <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                         <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
                         <span>Quick Demo Sandbox Profiles</span>
                       </p>
                       <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => handleQuickDemoLogin("teacher")}
-                          className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer"
-                        >
+                        <button type="button" onClick={() => handleQuickDemoLogin("teacher")} className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer">
                           <span>🔬 Teacher View</span>
                           <span className="text-[10px] text-slate-400 font-normal mt-0.5">Dr. Sarah (Analytics)</span>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleQuickDemoLogin("student")}
-                          className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer"
-                        >
+                        <button type="button" onClick={() => handleQuickDemoLogin("student")} className="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 rounded-xl text-xs font-bold transition-all text-left flex flex-col cursor-pointer">
                           <span>🎓 Student View</span>
                           <span className="text-[10px] text-slate-400 font-normal mt-0.5">David Miller (Exam Sheets)</span>
                         </button>
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
             ) : showSuccessScreen ? (
-              /* 🎉 Beautiful Post-Submission Success Layout for Advertisement Screen Captures */
-              <div className="max-w-2xl mx-auto my-12 bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-lg animate-scale-up">
+              <div className="max-w-2xl mx-auto my-12 bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-lg">
                 <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-6 border border-emerald-100">
-                  <CheckCircle2 className="w-10 h-10 animate-pulse" />
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                 </div>
                 <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Assessment Successfully Evaluated!</h3>
-                <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                  Your examination data sheets have been securely processed, encrypted, and synced with the institutional faculty grading boards.
-                </p>
+                <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">Your examination data sheets have been securely processed, encrypted, and synced with the institutional faculty grading boards.</p>
                 <div className="mt-8 flex justify-center gap-4">
-                  <button
-                    onClick={() => setShowSuccessScreen(false)}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
-                  >
-                    Return to Student Dashboard
-                  </button>
+                  <button onClick={() => setShowSuccessScreen(false)} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer">Return to Student Dashboard</button>
                 </div>
               </div>
             ) : (
-              /* 🖥️ Dynamic Dashboard Workspace Streams */
               <div className="space-y-6">
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
@@ -439,7 +318,6 @@ export default function App() {
                     onRefreshData={refreshAppData}
                     activeExamId={activeExamId}
                     setActiveExamId={setActiveExamId}
-                    onFinishExam={handleExamCompleteStream} 
                   />
                 ) : (
                   <TeacherPortal
