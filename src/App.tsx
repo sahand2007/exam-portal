@@ -7,21 +7,16 @@ import {
   ShieldAlert,
   ArrowLeftRight,
   RefreshCw,
-  ShieldCheck,
   Activity,
-  BarChart3
+  BarChart3,
+  Lock
 } from "lucide-react";
 
 export default function App() {
-  // Global App States - بەکارهێنەری پێشوەختە لەسەر پۆرتالی مامۆستایە بۆ ئەوەی ڕاستەوخۆ چارتی ڕیکلامەکە ببینرێت
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    id: "u-2",
-    email: "teacher@example.com",
-    name: "Dr. Sarah Jenkins",
-    role: Role.TEACHER,
-  });
+  // 🔄 لێرەدا بەکارهێنەر بە null دادەنێین تاوەکو یەکسەر شاشەی تاقیکردنەوەی لۆگین (Login Panel) پیشان بدرێت
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  // کۆمەڵێک تاقیکردنەوەی دەوڵەمەند لە چەندین بواری جیاوازدا
+  // کۆمەڵێک تاقیکردنەوەی دەوڵەمەند بۆ جوانکردنی ڕیکلام و پۆرتالەکە
   const [exams, setExams] = useState<Exam[]>([
     {
       id: "exam-1",
@@ -76,26 +71,10 @@ export default function App() {
           points: 100
         }
       ]
-    },
-    {
-      id: "exam-3",
-      title: "Network Infrastructure & Edge Routing protocols",
-      description: "Enterprise network configurations including BGP routing loops, TLS handshakes, and CDN caching behaviors.",
-      duration: 45,
-      totalPoints: 100,
-      questions: [
-        {
-          id: "q4",
-          text: "Which protocol handles secure key distribution securely over public edge systems?",
-          options: ["Unencrypted HTTP/1.1", "Standard UDP broadcast blocks", "Diffie-Hellman Key Exchange inside TLS", "Simple FTP synchronization layers"],
-          correctOptionIndex: 2,
-          points: 100
-        }
-      ]
     }
   ]);
 
-  // لیستێکی درێژ و ڕاستەقینە لە وەڵامدانەوەی قوتابییان بۆ دروستکردنی چارتی نایاب
+  // داتای قوتابییەکان بۆ دروستکردنی چارتی ئاماری دەوڵەمەند
   const [submissions, setSubmissions] = useState<Submission[]>([
     {
       id: "sub-1",
@@ -129,76 +108,22 @@ export default function App() {
       submittedAt: new Date().toISOString(),
       proctorFlags: 4,
       isGraded: true
-    },
-    {
-      id: "sub-4",
-      examId: "exam-1",
-      studentId: "u-6",
-      studentName: "Emily Watson",
-      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 0 }],
-      score: 50,
-      submittedAt: new Date().toISOString(),
-      proctorFlags: 1,
-      isGraded: true
-    },
-    {
-      id: "sub-5",
-      examId: "exam-2",
-      studentId: "u-1",
-      studentName: "David Miller",
-      answers: [{ questionId: "q3", selectedOptionIndex: 1 }],
-      score: 100,
-      submittedAt: new Date().toISOString(),
-      proctorFlags: 0,
-      isGraded: true
-    },
-    {
-      id: "sub-6",
-      examId: "exam-2",
-      studentId: "u-4",
-      studentName: "Sahand Sarkawt",
-      answers: [{ questionId: "q3", selectedOptionIndex: 1 }],
-      score: 100,
-      submittedAt: new Date().toISOString(),
-      proctorFlags: 0,
-      isGraded: true
-    },
-    {
-      id: "sub-7",
-      examId: "exam-2",
-      studentId: "u-6",
-      studentName: "Emily Watson",
-      answers: [{ questionId: "q3", selectedOptionIndex: 3 }],
-      score: 0,
-      submittedAt: new Date().toISOString(),
-      proctorFlags: 2,
-      isGraded: true
     }
   ]);
 
-  // داتای شیکاری تاقیکردنەوەکان کە بە تەواوی ئاماری بەرز، نزم، و تێکڕای نمرەکان دەردەخات
   const [analytics, setAnalytics] = useState<ExamStats[]>([
     {
       examId: "exam-1",
       examTitle: "Full-Stack Web Development Midterm",
-      averageScore: 75,
+      averageScore: 83.3,
       highestScore: 100,
       lowestScore: 50,
-      totalSubmissions: 4,
-      flaggedSessionsCount: 2
-    },
-    {
-      examId: "exam-2",
-      examTitle: "Data Structures & Algorithm Frameworks",
-      averageScore: 66.6,
-      highestScore: 100,
-      lowestScore: 0,
       totalSubmissions: 3,
       flaggedSessionsCount: 1
     },
     {
-      examId: "exam-3",
-      examTitle: "Network Infrastructure & Edge Routing protocols",
+      examId: "exam-2",
+      examTitle: "Data Structures & Algorithm Frameworks",
       averageScore: 0,
       highestScore: 0,
       lowestScore: 0,
@@ -209,11 +134,9 @@ export default function App() {
 
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
   const [loginEmail, setLoginEmail] = useState("");
-  const [loginRole, setLoginRole] = useState<"student" | "teacher">("student");
+  const [loginRole, setLoginRole] = useState<"student" | "teacher">("teacher");
 
-  // بۆ ڕێگری لە بلۆکبوونی UI، کارەکە دەخرێتە ناو کۆنتێکستێکی ئەسینک
   const refreshAppData = async () => {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -225,7 +148,7 @@ export default function App() {
     if (!loginEmail.trim()) return;
 
     setLoading(true);
-    // بەکارهێنانی setTimeout بۆ ئەوەی ڕێگا بە ئەنیمەیشنی دوگمەکە بدرێت بە جێگیری کار بکات
+    // بەکارهێنانی تایم ئاوت بۆ ڕێگری لە بلۆکبوونی یو ئای لە کاتی گۆڕینی شاشەکان
     setTimeout(() => {
       if (loginEmail.includes("teacher") || loginRole === "teacher") {
         setCurrentUser({
@@ -245,7 +168,7 @@ export default function App() {
       setLoginEmail("");
       setActiveExamId(null);
       setLoading(false);
-    }, 50);
+    }, 80);
   };
 
   const handleRoleQuickSwitch = () => {
@@ -255,23 +178,15 @@ export default function App() {
       );
       if (!confirmLeave) return;
     }
-
     if (!currentUser) return;
 
-    const nextRole =
-      currentUser.role === Role.STUDENT ? Role.TEACHER : Role.STUDENT;
-    const nextUser: User = {
+    const nextRole = currentUser.role === Role.STUDENT ? Role.TEACHER : Role.STUDENT;
+    setCurrentUser({
       id: nextRole === Role.STUDENT ? "u-1" : "u-2",
-      email:
-        nextRole === Role.STUDENT
-          ? "student@example.com"
-          : "teacher@example.com",
-      name:
-        nextRole === Role.STUDENT ? "David Miller" : "Dr. Sarah Jenkins",
+      email: nextRole === Role.STUDENT ? "student@example.com" : "teacher@example.com",
+      name: nextRole === Role.STUDENT ? "David Miller" : "Dr. Sarah Jenkins",
       role: nextRole,
-    };
-
-    setCurrentUser(nextUser);
+    });
     setActiveExamId(null);
   };
 
@@ -281,10 +196,7 @@ export default function App() {
       id="applet-container"
     >
       {/* Navigation Header */}
-      <header
-        className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/90"
-        id="navbar"
-      >
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/90" id="navbar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-3">
@@ -293,9 +205,7 @@ export default function App() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold tracking-tight text-slate-900">
-                    EduPortal
-                  </span>
+                  <span className="text-lg font-bold tracking-tight text-slate-900">EduPortal</span>
                   <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                     Enterprise SaaS Live
                   </span>
@@ -306,9 +216,7 @@ export default function App() {
                   </span>
                   <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
                     <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
-                    <span className="text-[8px] font-bold text-emerald-600">
-                      DB SERVER CONNECTED
-                    </span>
+                    <span className="text-[8px] font-bold text-emerald-600">DB SERVER LIVE</span>
                   </div>
                 </div>
               </div>
@@ -318,18 +226,12 @@ export default function App() {
               {currentUser ? (
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
-                    <div className="text-xs font-bold text-slate-900 leading-tight">
-                      {currentUser.name}
-                    </div>
+                    <div className="text-xs font-bold text-slate-900 leading-tight">{currentUser.name}</div>
                     <div className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider mt-0.5">
-                      {currentUser.role === Role.STUDENT
-                        ? "🎓 Candidate Workspace"
-                        : "🔬 Faculty Examiner Hub"}
+                      {currentUser.role === Role.STUDENT ? "🎓 Candidate Workspace" : "🔬 Faculty Examiner Hub"}
                     </div>
                   </div>
-
                   <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-
                   <button
                     onClick={handleRoleQuickSwitch}
                     className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow-sm flex items-center gap-2 transition-all"
@@ -337,9 +239,8 @@ export default function App() {
                     <ArrowLeftRight className="w-3.5 h-3.5" />
                     <span>Quick Swap Role</span>
                   </button>
-
                   <button
-                    onClick={() => setCurrentUser(null)}
+                    onClick={() => { setCurrentUser(null); setActiveExamId(null); }}
                     className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 hover:bg-rose-50 rounded-lg transition-all"
                   >
                     Exit
@@ -347,7 +248,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 py-1 px-2.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
-                  <span>Sandbox Environment Ready</span>
+                  <span>Showcase Gateway Active</span>
                 </div>
               )}
             </div>
@@ -360,12 +261,12 @@ export default function App() {
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center text-slate-500 space-y-4">
             <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-            <p className="font-semibold text-slate-800">Compiling Real-time Visual Dashboards...</p>
+            <p className="font-semibold text-slate-800">Compiling Workspace Components...</p>
           </div>
         ) : (
           <>
-            {/* ⚠️ ڕێکخستنی سیستەمی هۆشیارکردنەوەی سیکیۆریتی لە کاتی تاقیکردنەوەی چالاکدا */}
-            {activeExamId && (
+            {/* ⚠️ لۆژیکی ئاگاداری سیکیۆریتی: تەنها کاتێک دەرکەوێت کە قوتابی لە ناو تاقیکردنی چالاکدایە */}
+            {currentUser && currentUser.role === Role.STUDENT && activeExamId && (
               <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-xs animate-pulse">
                 <div className="flex items-start gap-3">
                   <div className="p-1 bg-amber-100 rounded-lg text-amber-700 shrink-0 mt-0.5">
@@ -373,7 +274,7 @@ export default function App() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-black tracking-wider uppercase text-amber-850">
+                      <span className="text-xs font-black tracking-wider uppercase text-amber-900">
                         SECURITY MONITOR ACTIVE
                       </span>
                       <span className="bg-amber-600 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-sm uppercase tracking-widest">
@@ -388,8 +289,9 @@ export default function App() {
               </div>
             )}
 
+            {/* 🔐 بەشی لۆگینی گەڕاوە (Login Test Interface) */}
             {!currentUser ? (
-              <div className="max-w-5xl mx-auto my-10" id="login-layout-panel">
+              <div className="max-w-5xl mx-auto my-10 animate-fade-in" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                   <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="space-y-6">
@@ -403,6 +305,10 @@ export default function App() {
                       <p className="text-indigo-200/90 text-sm leading-relaxed">
                         Simulating secure database models with automatic evaluation workflows, full student metric indexing, and proctoring logs.
                       </p>
+                    </div>
+                    <div className="pt-8 border-t border-indigo-500/30 flex items-center gap-2 text-indigo-200 text-xs font-semibold">
+                      <Lock className="w-4 h-4 text-emerald-400" />
+                      <span>End-to-End Encrypted Environment</span>
                     </div>
                   </div>
 
@@ -418,13 +324,13 @@ export default function App() {
                           placeholder="teacher@example.com یان student@example.com"
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-medium"
                         />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Select Dashboard Profile</label>
                         <select 
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all font-semibold"
                           value={loginRole}
                           onChange={(e) => setLoginRole(e.target.value as "student" | "teacher")}
                         >
@@ -432,7 +338,7 @@ export default function App() {
                           <option value="student">Student Sandbox View (David Miller)</option>
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">
+                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md active:scale-[0.99] transition-all cursor-pointer">
                         Launch Premium Presentation Workspace
                       </button>
                     </form>
@@ -440,7 +346,8 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-6 animate-fade-in">
+              /* 🖥️ بەشی لۆدبوونی پۆرتالەکان دوای لۆگین */
+              <div className="space-y-6">
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
                     currentUser={currentUser}
