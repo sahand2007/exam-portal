@@ -106,6 +106,18 @@ const exportToExcel = () => {
           const updatedOpts = [...q.options];
           updatedOpts[optIdx] = val;
           return { ...q, options: updatedOpts };
+          <div className="flex justify-between items-center mb-4">
+  <div>
+    <h3 className="text-lg font-bold text-slate-800">Dynamic Submissions Table</h3>
+    <p className="text-slate-400 text-xs mt-0.5">Real-time compilation of raw evaluations.</p>
+  </div>
+  <button 
+    onClick={exportToExcel}
+    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all"
+  >
+    <Download className="w-4 h-4" /> Export to Excel
+  </button>
+</div>
         }
         return q;
       })
