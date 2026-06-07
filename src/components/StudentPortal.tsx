@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Exam, AnswerSelection, Submission } from "../types";
-import { Calendar, Clock, Award, FileSpreadsheet, CheckCircle, AlertTriangle, ArrowRight, ShieldAlert, Award as Trophy } from "lucide-react";
+import { Calendar, Clock, Award, FileSpreadsheet, CheckCircle, AlertTriangle, ArrowRight, ArrowLeft, ShieldAlert, Award as Trophy } from "lucide-react";
 
 interface StudentPortalProps {
   currentUser: User;
@@ -45,7 +45,7 @@ export default function StudentPortal({
 
   // Set up tab-switching cheating prevention trigger
   useEffect(() => {
-    if (!activeExamId || showConfirmModal) return; // ⚡ ئەگەر مۆدالی دڵنیاکەرەوە کراوە بوو لۆژیکەکە دەوێستێنێت بۆ ئەوەی وۆڕنینگ زیاد نەکات
+    if (!activeExamId || showConfirmModal) return;
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -70,7 +70,6 @@ export default function StudentPortal({
   useEffect(() => {
     if (!activeExamId || !activeExam) return;
 
-    // ⚡ لێرەدا چارەسەری کێشەی duration یان durationMinutes کراوە بۆ ئەوەی شاشەکە کراش نەکات
     const duration = examDurationInMinutes(activeExam);
     setTimeLeft(duration * 60);
     setCurrentQuestionIndex(0);
@@ -93,7 +92,6 @@ export default function StudentPortal({
     return () => clearInterval(interval);
   }, [activeExamId]);
 
-  // Helper helper handling safely fallback variables on types layout mapping
   const examDurationInMinutes = (exam: Exam): number => {
     if ('durationMinutes' in exam) return (exam as any).durationMinutes || 60;
     if ('duration' in exam) return (exam as any).duration || 60;
@@ -143,7 +141,6 @@ export default function StudentPortal({
         setActiveExamId(null);
         onRefreshData();
       } else {
-        // Fallback local mock update implementation for client demo video presentations
         const calculatedMockScore = Math.floor(Math.random() * 20) * 5 + PassMockBenchmark(answersToSend);
         const fallbackPayload: Submission = {
           id: "sub-mock-" + Date.now(),
@@ -166,8 +163,8 @@ export default function StudentPortal({
         onRefreshData();
       }
     } catch (e) {
-      console.error("Submission backend system unreachable, parsing presentation layout state fallback", e);
-    } finally {
+      console.error("Submission backend system unreachable", e);
+    } finaly {
       setSubmitting(false);
     }
   };
@@ -179,7 +176,6 @@ export default function StudentPortal({
   };
 
   const handleSubmitExamClick = () => {
-    // ⚡ گۆڕینی window.confirm بە مۆدالێکی ناوخۆیی UI زۆر نایاب بۆ ئەوەی فوکەسی پەڕەکە نەڕوات
     setShowConfirmModal(true);
   };
 
@@ -203,6 +199,7 @@ export default function StudentPortal({
     <div className="space-y-6" id="student-portal-wrapper">
       {activeExamId && activeExam ? (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden" id="active-exam-container">
+          {/* Security Alert Header */}
           <div className="bg-amber-500 text-white px-6 py-2.5 flex items-center justify-between text-xs font-semibold gap-3">
             <div className="flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 animate-bounce" />
@@ -216,6 +213,7 @@ export default function StudentPortal({
             )}
           </div>
 
+          {/* Exam Header Meta */}
           <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50">
             <div>
               <span className="text-xs font-bold text-indigo-700 uppercase bg-indigo-50 px-2.5 py-1 rounded">
@@ -242,6 +240,7 @@ export default function StudentPortal({
             </div>
           </div>
 
+          {/* Progress Bar */}
           <div className="w-full bg-slate-100 h-1.5">
             <div
               className="bg-indigo-600 h-full transition-all duration-300"
@@ -250,6 +249,7 @@ export default function StudentPortal({
           </div>
 
           <div className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Left side: Questions box and Nav buttons */}
             <div className="lg:col-span-3 space-y-6">
               <div className="bg-slate-50 rounded-xl p-5 border border-slate-200/60 max-w-none">
                 <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-3">
@@ -261,6 +261,7 @@ export default function StudentPortal({
                 </h3>
               </div>
 
+              {/* Options mapping list */}
               <div className="space-y-3">
                 {activeExam.questions[currentQuestionIndex].options.map((opt, i) => {
                   const isSelected = currentQuestionsAnswers[currentQuestionIndex]?.selectedOptionIndex === i;
@@ -286,23 +287,49 @@ export default function StudentPortal({
                 })}
               </div>
 
+              {/* ⚡ گۆڕینی پرسیارەکان بە شێوازی لیست (Pagination / Question Bar Switcher) */}
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-wrap items-center justify-center gap-2 mt-4">
+                {activeExam.questions.map((_, idx) => {
+                  const isCurrent = currentQuestionIndex === idx;
+                  const hasAnswered = currentQuestionsAnswers[idx]?.selectedOptionIndex !== -1;
+                  
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCurrentQuestionIndex(idx)}
+                      className={`w-10 h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center border cursor-pointer ${
+                        isCurrent
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-md scale-105"
+                          : hasAnswered
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
                   disabled={currentQuestionIndex === 0}
-                  className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition-all disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
+                  className="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition-all disabled:opacity-40 disabled:hover:bg-white cursor-pointer inline-flex items-center gap-1.5"
                 >
-                  Previous Question
+                  <ArrowLeft className="w-4 h-4" /> Previous
                 </button>
 
                 {currentQuestionIndex < activeExam.questions.length - 1 ? (
                   <button
                     type="button"
                     onClick={() => setCurrentQuestionIndex(prev => Math.min(activeExam.questions.length - 1, prev + 1))}
-                    className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-all shadow-xs cursor-pointer"
+                    className="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    Next Question
+                    Next <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
@@ -317,31 +344,26 @@ export default function StudentPortal({
               </div>
             </div>
 
-            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-              <h4 className="text-slate-800 font-bold text-xs uppercase tracking-wider mb-4">Questions Grid</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {activeExam.questions.map((_, i) => {
-                  const answer = currentQuestionsAnswers[i];
-                  const hasAnswered = answer && answer.selectedOptionIndex !== -1;
-                  const isCurrent = currentQuestionIndex === i;
-
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setCurrentQuestionIndex(i)}
-                      className={`aspect-square rounded-lg text-xs font-bold font-mono transition-all flex items-center justify-center cursor-pointer ${
-                        isCurrent
-                          ? "bg-indigo-600 text-white shadow-xs scale-105"
-                          : hasAnswered
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-white border border-slate-200 text-slate-500 hover:bg-slate-100"
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  );
-                })}
+            {/* Right Side Info Box */}
+            <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 h-fit">
+              <h4 className="text-slate-800 font-bold text-xs uppercase tracking-wider mb-4">Exam Summary</h4>
+              <div className="space-y-3 text-xs text-slate-600">
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span>Total Questions:</span>
+                  <span className="font-bold text-slate-800">{activeExam.questions.length}</span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span>Answered:</span>
+                  <span className="font-bold text-emerald-600">
+                    {currentQuestionsAnswers.filter(a => a.selectedOptionIndex !== -1).length}
+                  </span>
+                </div>
+                <div className="flex justify-between pb-1">
+                  <span>Remaining:</span>
+                  <span className="font-bold text-amber-600">
+                    {currentQuestionsAnswers.filter(a => a.selectedOptionIndex === -1).length}
+                  </span>
+                </div>
               </div>
 
               <div className="mt-6 pt-5 border-t border-slate-200 space-y-2 text-[11px] text-slate-500">
@@ -499,7 +521,7 @@ export default function StudentPortal({
         </>
       )}
 
-      {/* ⚡ UI Confirmation Modal: چارەسەری کێشەی وۆڕنینگ و بلۆک بوونەکە دەکات */}
+      {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-sm w-full p-6 shadow-xl border border-slate-200 text-center space-y-4">
