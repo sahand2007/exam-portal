@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { User, Exam, Question, Submission, ExamStats } from "../types";
 import { Plus, Trash2, LayoutDashboard, FilePlus, Table, ShieldAlert, CheckCircle2, XCircle, TrendingUp, RefreshCw, BarChart as ChartIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
-
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import { Download } from "lucide-react"; // زیادکردنی ئایکۆنی دابەزاندن
 interface TeacherPortalProps {
   currentUser: User;
   exams: Exam[];
@@ -75,7 +77,14 @@ export default function TeacherPortal({
       }
     ]);
   };
-
+const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(submissions);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Submissions");
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(data, "Exam_Results.xlsx");
+  };
   const handleRemoveQuestionObj = (index: number) => {
     if (newQuestions.length <= 1) {
       alert("At least one question is required to create an exam paper!");
