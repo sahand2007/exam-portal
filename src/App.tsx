@@ -17,6 +17,7 @@ export default function App() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [analytics, setAnalytics] = useState<ExamStats[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]); // Bo login krdni custom
   
   const [activeTab, setActiveTab] = useState<'portal' | 'exporter'>('portal');
   const [activeExamId, setActiveExamId] = useState<string | null>(null);
@@ -27,31 +28,24 @@ export default function App() {
   const [loginRole, setLoginRole] = useState<'student' | 'teacher'>('student');
   const [authError, setAuthError] = useState("");
 
-  // Retrieve states from local server JSON file db
+  // Retrieve states from static JSON file db in public folder
   const refreshAppData = async () => {
     try {
-      // 1. Fetch Exams
-      const examResp = await fetch("/api/exams");
-      if (examResp.ok) {
-        const examData = await examResp.json();
-        setExams(examData);
+      // Fetch krdni daka lagal Vercel rasta wxo la public folder
+      const response = await fetch("/database.json");
+      if (!response.ok) {
+        throw new Error("Failed to fetch database.json");
       }
+      const data = await response.json();
+      
+      // Dabe کردنی داتاکان بۆ ستیتە جیاوازەکان وەک کۆدە کۆنەکەت
+      if (data.exams) setExams(data.exams);
+      if (data.submissions) setSubmissions(data.submissions);
+      if (data.analytics) setAnalytics(data.analytics);
+      if (data.users) setAllUsers(data.users);
 
-      // 2. Fetch Submissions
-      const subResp = await fetch("/api/submissions");
-      if (subResp.ok) {
-        const subData = await subResp.json();
-        setSubmissions(subData);
-      }
-
-      // 3. Fetch Analytics
-      const analyticsResp = await fetch("/api/analytics");
-      if (analyticsResp.ok) {
-        const analyticsData = await analyticsResp.json();
-        setAnalytics(analyticsData);
-      }
     } catch (err) {
-      console.error("Failed fetching database endpoints", err);
+      console.error("Failed fetching database file from public folder", err);
     } finally {
       setLoading(false);
     }
@@ -65,30 +59,20 @@ export default function App() {
     e.preventDefault();
     if (!loginEmail.trim()) return;
 
-    try {
-      const resp = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: loginEmail,
-          role: loginRole
-        })
-      });
+    // Login krdni loka`ly ba bē server la regey fyli database.json
+    const matchedUser = allUsers.find(
+      u => u.email.toLowerCase() === loginEmail.trim().toLowerCase() && 
+      u.role.toLowerCase() === loginRole.toLowerCase()
+    );
 
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.success) {
-          setCurrentUser(data.user);
-          setAuthError("");
-          setLoginEmail("");
-          setActiveExamId(null);
-          refreshAppData();
-        }
-      } else {
-        setAuthError("Failed authentication. Try again.");
-      }
-    } catch (err) {
-      setAuthError("Could not reach auth server.");
+    if (matchedUser) {
+      setCurrentUser(matchedUser);
+      setAuthError("");
+      setLoginEmail("");
+      setActiveExamId(null);
+      refreshAppData();
+    } else {
+      setAuthError("Email and role mismatch! Use student@example.com or teacher@example.com");
     }
   };
 
