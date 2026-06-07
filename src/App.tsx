@@ -18,53 +18,85 @@ import {
   Activity,
   ChevronRight,
   Database,
+  BarChart3
 } from "lucide-react";
 
 export default function App() {
-  // Global App States - بەکارهێنەری سەرەکی (دەتوانیت لە ڕێگەی سویچ گۆڕانکاری بکەیت)
+  // Global App States - بەکارهێنەری پێشوەختە لەسەر پۆرتالی مامۆستایە بۆ ئەوەی ڕاستەوخۆ چارتی ڕیکلامەکە ببینرێت
   const [currentUser, setCurrentUser] = useState<User | null>({
-    id: "u-1",
-    email: "student@example.com",
-    name: "David Miller",
-    role: Role.STUDENT,
+    id: "u-2",
+    email: "teacher@example.com",
+    name: "Dr. Sarah Jenkins",
+    role: Role.TEACHER,
   });
 
-  // لێرەدا داتاکان بە دەوڵەمەندی دادەنێین بۆ ئەوەی کێشەی کەمی داتا نەمێنێت
+  // کۆمەڵێک تاقیکردنەوەی دەوڵەمەند لە چەندین بواری جیاوازدا
   const [exams, setExams] = useState<Exam[]>([
     {
       id: "exam-1",
-      title: "Midterm Examination 2026",
-      description: "Evaluation of core concepts including algorithms, system structure, and basic protocols.",
+      title: "Full-Stack Web Development Midterm",
+      description: "Advanced evaluation of Next.js Server Components, React Lifecycle, Tailwind state composition, and Vercel edge runtime operations.",
       duration: 60,
       totalPoints: 100,
       questions: [
         {
           id: "q1",
-          text: "What is the primary complexity of Binary Search in the worst case?",
-          options: ["O(1)", "O(n)", "O(log n)", "O(n log n)"],
-          correctOptionIndex: 2,
+          text: "Which of the following describes a React Server Component (RSC) correctly?",
+          options: [
+            "They re-render fully on the client side after the initial hydration hydration process.",
+            "They execute exclusively on the server and reduce the final client-side bundle size.",
+            "They require dynamic configuration parameters via the legacy useMemo hook architecture.",
+            "They lack direct native pipeline integration with Cloudflare network wrappers."
+          ],
+          correctOptionIndex: 1,
           points: 50
         },
         {
           id: "q2",
-          text: "Which protocol operates at the Transport Layer of the OSI model?",
-          options: ["HTTP", "TCP", "IP", "FTP"],
-          correctOptionIndex: 1,
+          text: "What is the utility of dynamic layouts under customized nested Tailwind CSS projects?",
+          options: [
+            "To hardcode style properties outside global configuration scripts.",
+            "To inject compiled inline utilities that ignore state change triggers dynamically.",
+            "To construct fluid, container-queries reactive interface systems using utility-first properties.",
+            "To re-trigger browser layout processing engines sequentially via DOM overhead injections."
+          ],
+          correctOptionIndex: 2,
           points: 50
         }
       ]
     },
     {
       id: "exam-2",
-      title: "Web Development Advanced Quiz",
-      description: "Deep dive into React lifecycle, state management, and custom hook optimization.",
-      duration: 45,
+      title: "Data Structures & Algorithm Frameworks",
+      description: "Comprehensive testing on Tree balancing heuristics, worst-case asymptotic bounds, and graph traversal algorithms.",
+      duration: 90,
       totalPoints: 100,
       questions: [
         {
           id: "q3",
-          text: "Which hook is used to memoize the return value of a function?",
-          options: ["useEffect", "useCallback", "useMemo", "useRef"],
+          text: "What is the structural guarantee of a strict red-black tree layout?",
+          options: [
+            "The tree becomes perfectly linear when elements exceed double-digit counts.",
+            "The longest root-to-leaf path is no more than twice as long as the shortest path.",
+            "All sub-nodes maintain identical reference counts to global runtime context parameters.",
+            "Every insert statement triggers an O(n^2) cascading sorting pattern."
+          ],
+          correctOptionIndex: 1,
+          points: 100
+        }
+      ]
+    },
+    {
+      id: "exam-3",
+      title: "Network Infrastructure & Edge Routing protocols",
+      description: "Enterprise network configurations including BGP routing loops, TLS handshakes, and CDN caching behaviors.",
+      duration: 45,
+      totalPoints: 100,
+      questions: [
+        {
+          id: "q4",
+          text: "Which protocol handles secure key distribution securely over public edge systems?",
+          options: ["Unencrypted HTTP/1.1", "Standard UDP broadcast blocks", "Diffie-Hellman Key Exchange inside TLS", "Simple FTP synchronization layers"],
           correctOptionIndex: 2,
           points: 100
         }
@@ -72,14 +104,14 @@ export default function App() {
     }
   ]);
 
-  // داتای ناردراوی قوتابییەکان (Submissions) بۆ ئەوەی مامۆستا نمرەکان ببینێت
+  // لیستێکی درێژ و ڕاستەقینە لە وەڵامدانەوەی قوتابییان بۆ دروستکردنی چارتی نایاب
   const [submissions, setSubmissions] = useState<Submission[]>([
     {
       id: "sub-1",
       examId: "exam-1",
       studentId: "u-1",
       studentName: "David Miller",
-      answers: [{ questionId: "q1", selectedOptionIndex: 2 }, { questionId: "q2", selectedOptionIndex: 1 }],
+      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 2 }],
       score: 100,
       submittedAt: new Date().toISOString(),
       proctorFlags: 0,
@@ -88,30 +120,94 @@ export default function App() {
     {
       id: "sub-2",
       examId: "exam-1",
-      studentId: "u-3",
+      studentId: "u-4",
+      studentName: "Sahand Sarkawt",
+      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 2 }],
+      score: 100,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 0,
+      isGraded: true
+    },
+    {
+      id: "sub-3",
+      examId: "exam-1",
+      studentId: "u-5",
       studentName: "Alex Rivera",
-      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 1 }],
+      answers: [{ questionId: "q1", selectedOptionIndex: 0 }, { questionId: "q2", selectedOptionIndex: 2 }],
       score: 50,
       submittedAt: new Date().toISOString(),
-      proctorFlags: 3, // ئەم کاندیدە فڵاگی هەیە بۆ تاقیکردنەوەی لۆژیکی سیکیۆریتی
+      proctorFlags: 4, // نیشاندانی سیستەمی دژە فێڵ (Proctoring) بە فڵاگی زۆرەوە بۆ سکرین شۆت
+      isGraded: true
+    },
+    {
+      id: "sub-4",
+      examId: "exam-1",
+      studentId: "u-6",
+      studentName: "Emily Watson",
+      answers: [{ questionId: "q1", selectedOptionIndex: 1 }, { questionId: "q2", selectedOptionIndex: 0 }],
+      score: 50,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 1,
+      isGraded: true
+    },
+    {
+      id: "sub-5",
+      examId: "exam-2",
+      studentId: "u-1",
+      studentName: "David Miller",
+      answers: [{ questionId: "q3", selectedOptionIndex: 1 }],
+      score: 100,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 0,
+      isGraded: true
+    },
+    {
+      id: "sub-6",
+      examId: "exam-2",
+      studentId: "u-4",
+      studentName: "Sahand Sarkawt",
+      answers: [{ questionId: "q3", selectedOptionIndex: 1 }],
+      score: 100,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 0,
+      isGraded: true
+    },
+    {
+      id: "sub-7",
+      examId: "exam-2",
+      studentId: "u-6",
+      studentName: "Emily Watson",
+      answers: [{ questionId: "q3", selectedOptionIndex: 3 }],
+      score: 0,
+      submittedAt: new Date().toISOString(),
+      proctorFlags: 2,
       isGraded: true
     }
   ]);
 
-  // ستاتیستیک و شیکاری پۆلی مامۆستا (Analytics) بۆ ئەوەی هێڵکاری و ژمارەکان پڕ بن
+  // داتای شیکاری تاقیکردنەوەکان کە بە تەواوی ئاماری بەرز، نزم، و تێکڕای نمرەکان دەردەخات
   const [analytics, setAnalytics] = useState<ExamStats[]>([
     {
       examId: "exam-1",
-      examTitle: "Midterm Examination 2026",
+      examTitle: "Full-Stack Web Development Midterm",
       averageScore: 75,
       highestScore: 100,
       lowestScore: 50,
-      totalSubmissions: 2,
-      flaggedSessionsCount: 1
+      totalSubmissions: 4,
+      flaggedSessionsCount: 2
     },
     {
       examId: "exam-2",
-      examTitle: "Web Development Advanced Quiz",
+      examTitle: "Data Structures & Algorithm Frameworks",
+      averageScore: 66.6,
+      highestScore: 100,
+      lowestScore: 0,
+      totalSubmissions: 3,
+      flaggedSessionsCount: 1
+    },
+    {
+      examId: "exam-3",
+      examTitle: "Network Infrastructure & Edge Routing protocols",
       averageScore: 0,
       highestScore: 0,
       lowestScore: 0,
@@ -129,10 +225,9 @@ export default function App() {
 
   const refreshAppData = async () => {
     setLoading(true);
-    // لۆژیکی ڕیفرێش لەسەر داتای ناوخۆیی بە جێگیری دەمێنێتەوە
     setTimeout(() => {
       setLoading(false);
-    }, 400);
+    }, 300);
   };
 
   const handleCustomLogin = (e: React.FormEvent) => {
@@ -188,18 +283,18 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900"
+      className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-indigo-100"
       id="applet-container"
     >
       {/* Navigation Header */}
       <header
-        className="bg-white border-b border-slate-200 sticky top-0 z-40"
+        className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/90"
         id="navbar"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-sm shadow-indigo-600/10">
+              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-indigo-600/20">
                 <GraduationCap className="w-6 h-6" />
               </div>
               <div>
@@ -207,18 +302,18 @@ export default function App() {
                   <span className="text-lg font-bold tracking-tight text-slate-900">
                     EduPortal
                   </span>
-                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Pro SaaS
+                  <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
+                    Enterprise SaaS Live
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 leading-none">
                   <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">
-                    Institution Portal
+                    Baban Computer Institute Environment
                   </span>
                   <div className="flex items-center gap-1 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">
-                    <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-emerald-500 rounded-full animate-ping"></div>
                     <span className="text-[8px] font-bold text-emerald-600">
-                      SYSTEM DATA LIVE
+                      DB SERVER CONNECTED
                     </span>
                   </div>
                 </div>
@@ -235,7 +330,7 @@ export default function App() {
                     <div className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider mt-0.5">
                       {currentUser.role === Role.STUDENT
                         ? "🎓 Candidate Workspace"
-                        : "🔬 Faculty Examiner"}
+                        : "🔬 Faculty Examiner Hub"}
                     </div>
                   </div>
 
@@ -244,23 +339,22 @@ export default function App() {
                   <button
                     onClick={handleRoleQuickSwitch}
                     title="Toggle Workspace Context for Showcase Testing"
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/50 rounded-lg text-slate-700 hover:text-indigo-700 active:scale-95 transition-all flex items-center gap-2 text-xs font-semibold cursor-pointer shadow-2xs"
+                    className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow-sm flex items-center gap-2 transition-all"
                   >
                     <ArrowLeftRight className="w-3.5 h-3.5" />
-                    <span>Switch Role</span>
+                    <span>Quick Swap Role</span>
                   </button>
 
                   <button
                     onClick={() => setCurrentUser(null)}
                     className="text-xs text-rose-500 hover:text-rose-700 font-bold px-3 py-1.5 hover:bg-rose-50 rounded-lg transition-all"
                   >
-                    Sign Out
+                    Exit
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 py-1 px-2.5 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold rounded-full">
-                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping"></span>
-                  <span>Direct Customer Live Sandbox</span>
+                  <span>Sandbox Environment Ready</span>
                 </div>
               )}
             </div>
@@ -273,63 +367,63 @@ export default function App() {
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center text-slate-500 space-y-4">
             <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-            <p className="font-semibold text-slate-800">Updating View Metrics...</p>
+            <p className="font-semibold text-slate-800">Compiling Real-time Visual Dashboards...</p>
           </div>
         ) : (
           <>
             {!currentUser ? (
               <div className="max-w-5xl mx-auto my-10" id="login-layout-panel">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                  <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-lg">
+                  <div className="lg:col-span-5 bg-gradient-to-br from-indigo-700 via-indigo-800 to-indigo-950 rounded-2xl p-8 text-white flex flex-col justify-between shadow-xl relative overflow-hidden">
                     <div className="space-y-6">
                       <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs text-indigo-200">
-                        <Activity className="w-3 h-3 text-emerald-400" />
-                        <span>Mock Sandbox Enabled</span>
+                        <BarChart3 className="w-3 h-3 text-emerald-400" />
+                        <span>High-Fidelity Showcase Mode</span>
                       </div>
-                      <h2 className="text-3xl font-extrabold tracking-tight">
-                        Enterprise Examination Dashboard.
+                      <h2 className="text-3xl font-extrabold tracking-tight leading-snug">
+                        AI-Powered Proctored Assessment Engine.
                       </h2>
-                      <p className="text-indigo-200/90 text-sm">
-                        Tested layout using robust baseline objects mimicking high volume database synchronization.
+                      <p className="text-indigo-200/90 text-sm leading-relaxed">
+                        Simulating secure database models with automatic evaluation workflows, full student metric indexing, and proctoring logs.
                       </p>
                     </div>
                   </div>
 
-                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8">
+                  <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
                     <form onSubmit={handleCustomLogin} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 block">
-                          EMAIL ADDRESS
+                        <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
+                          Institutional Email Identifier
                         </label>
                         <input
                           type="email"
                           required
-                          placeholder="student@example.com یان teacher@example.com"
+                          placeholder="teacher@example.com یان student@example.com"
                           value={loginEmail}
                           onChange={(e) => setLoginEmail(e.target.value)}
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-700 block">SELECT DEFAULT ROLE</label>
+                        <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Select Dashboard Profile</label>
                         <select 
-                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none"
+                          className="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:bg-white transition-all"
                           value={loginRole}
                           onChange={(e) => setLoginRole(e.target.value as "student" | "teacher")}
                         >
-                          <option value="student">Student (David Miller)</option>
-                          <option value="teacher">Teacher (Dr. Sarah Jenkins)</option>
+                          <option value="teacher">Faculty Examiner View (Dr. Sarah Jenkins)</option>
+                          <option value="student">Student Sandbox View (David Miller)</option>
                         </select>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl">
-                        Enter Sandbox Workspace
+                      <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md transition-all">
+                        Launch Premium Presentation Workspace
                       </button>
                     </form>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-6 animate-fade-in">
                 {currentUser.role === Role.STUDENT ? (
                   <StudentPortal
                     currentUser={currentUser}
